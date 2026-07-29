@@ -53,7 +53,7 @@ let package = Package(
         // (see https://github.com/adalinxx/swift-network-evolution, branch swift-quic-fixes).
         .package(
             url: "https://github.com/adalinxx/swift-network-evolution",
-            revision: "d6f9fe73e95ba59d7f1fe354f6d61c99e54f3484",
+            exact: "0.1.2-swiftquic.1",
             traits: swiftNetworkTraits
         ),
         .package(url: "https://github.com/apple/swift-tls", .upToNextMinor(from: "0.1.0")),
