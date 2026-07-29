@@ -49,9 +49,11 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.4.1"),
         .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.0-beta.2"),
         .package(url: "https://github.com/apple/swift-nio-quic-helpers.git", .upToNextMinor(from: "0.1.0")),
+        // Integration pin: adalinxx fork = 0.1.1 + teardown-crash fix
+        // (see https://github.com/adalinxx/swift-network-evolution, branch swift-quic-fixes).
         .package(
-            url: "https://github.com/apple/swift-network-evolution",
-            .upToNextMinor(from: "0.1.1"),
+            url: "https://github.com/adalinxx/swift-network-evolution",
+            revision: "338396e0efb7d31ddd050031100299ab791f55a7",
             traits: swiftNetworkTraits
         ),
         .package(url: "https://github.com/apple/swift-tls", .upToNextMinor(from: "0.1.0")),
