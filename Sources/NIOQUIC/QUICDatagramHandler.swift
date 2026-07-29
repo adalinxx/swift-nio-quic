@@ -63,6 +63,22 @@ final class QUICDatagramHandler: ChannelDuplexHandler {
         #endif
     }
 
+    /// Marks the datagram flow as failed to attach: fails any buffered early
+    /// writes and rejects future writes fast.
+    ///
+    /// Without this, writes buffered while `.waitingForPeerAdvertisement`
+    /// keep their promises pending until the channel closes — callers
+    /// awaiting them are stuck for the connection's remaining lifetime.
+    func attachFailed(_ error: any Error) {
+        self.log("datagram flow attach failed: \(error)")
+        if case .waitingForPeerAdvertisement(let earlyWrites) = self.state {
+            for (_, promise) in earlyWrites {
+                promise?.fail(QUICError.datagramWriteFailed)
+            }
+        }
+        self.state = .peerDoesNotAcceptDatagrams
+    }
+
     /// Installs a `QUICDatagramProtocol` conforming backend for testing, applying the peer's
     /// advertised `max_datagram_frame_size` the same way `setBackend(to:withPeerMaxDatagramFrameSize:)`
     /// does.

@@ -368,6 +368,9 @@ extension QUICChannelNewFlowHandler {
             datagramHandler.setBackend(to: transport, withPeerMaxDatagramFrameSize: Int(remoteFrameSize))
         } catch {
             self.logger.error("\(self.logPrefix) Failed to attach QUIC datagram flow: \(error)")
+            // Fail buffered datagram writes instead of leaving their promises
+            // pending for the rest of the connection's lifetime.
+            datagramHandler.attachFailed(error)
         }
     }
 }

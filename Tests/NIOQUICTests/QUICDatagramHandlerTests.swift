@@ -64,6 +64,25 @@ struct QUICDatagramHandlerTests {
     }
 
     @available(anyAppleOS 26, *)
+    @Test("Buffered writes fail immediately when the datagram flow fails to attach")
+    func bufferedWritesFailWhenAttachFails() throws {
+        try Self.withHandler { channel, handler, transport, _ in
+            let buffered = Self.write(channel, ByteBuffer(string: "buffered"))
+            #expect(Self.outcome(buffered) == nil)
+
+            // The flow failed to attach: the buffered write must fail now, not
+            // stay pending for the connection's remaining lifetime.
+            handler.attachFailed(QUICError.datagramWriteFailed)
+            #expect(Self.failedQUICError(buffered) == .datagramWriteFailed)
+            #expect(transport.writtenDatagrams.isEmpty)
+
+            // Later writes fail fast rather than buffering again.
+            let late = Self.write(channel, ByteBuffer(string: "late"))
+            #expect(Self.failedQUICError(late) == .peerDoesNotAcceptDatagrams)
+        }
+    }
+
+    @available(anyAppleOS 26, *)
     @Test("A buffered write larger than the advertised limit fails as datagramTooLarge")
     func bufferedOversizedWriteFailsAsTooLarge() throws {
         try Self.withHandler { channel, handler, transport, _ in
