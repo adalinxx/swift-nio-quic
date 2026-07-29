@@ -579,8 +579,22 @@ final class QUICChannelStreamHandler: ProtocolInstanceContainer, InboundStreamHa
             break
         }
         if self.isActive {
-            self._close(error: error, promise: nil)
+            self._close(error: Self.disconnectError(from: error), promise: nil)
         }
+    }
+
+    /// A disconnect triggered by the peer's RESET_STREAM can arrive here
+    /// carrying the raw transport error; surface the typed reset so
+    /// applications never have to unpack `NetworkError` themselves.
+    private static func disconnectError(from error: NetworkError?) -> (any Error)? {
+        guard let error else { return nil }
+        if let rawCode = error.quicApplicationError,
+            rawCode >= 0,
+            let code = NIOQUICHelpers.QUICApplicationErrorCode(UInt64(rawCode))
+        {
+            return NIOQUICHelpers.QUICStreamResetError(code: code)
+        }
+        return error
     }
 
     @inline(__always)
